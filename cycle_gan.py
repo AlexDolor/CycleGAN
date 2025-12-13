@@ -220,6 +220,7 @@ def training_loop(dataloader_X, dataloader_Y, test_dataloader_X, test_dataloader
 
     #create criterion for the generators and discriminators
     mse_criterion = nn.MSELoss()
+    cycle_criterion = torch.nn.L1Loss()
 
     iter_X = iter(dataloader_X)
     iter_Y = iter(dataloader_Y)
@@ -312,7 +313,7 @@ def training_loop(dataloader_X, dataloader_Y, test_dataloader_X, test_dataloader
         if opts.use_cycle_consistency_loss:
             reconstructed_Y = G_XtoY(fake_X)
             # 3. Compute the cycle consistency loss (the reconstruction loss)
-            cycle_consistency_loss = mse_criterion(reconstructed_Y, images_Y)
+            cycle_consistency_loss = cycle_criterion(reconstructed_Y, images_Y)
             g_loss += cycle_consistency_loss
 
         g_loss.backward()
@@ -334,7 +335,7 @@ def training_loop(dataloader_X, dataloader_Y, test_dataloader_X, test_dataloader
         if opts.use_cycle_consistency_loss:
             reconstructed_X = G_YtoX(fake_Y)
             # 3. Compute the cycle consistency loss (the reconstruction loss)
-            cycle_consistency_loss = mse_criterion(reconstructed_X, images_X)
+            cycle_consistency_loss = cycle_criterion(reconstructed_X, images_X)
             g_loss += cycle_consistency_loss
 
         g_loss.backward()
@@ -429,14 +430,15 @@ def create_parser():
 if __name__ == '__main__':
 
     parser = create_parser()
-    opts = parser.parse_args()
+    # opts = parser.parse_args()
+    opts, _ = parser.parse_known_args()
 
-    if opts.use_cycle_consistency_loss:
-        opts.sample_dir = 'samples_cyclegan_cycle'
+    # if opts.use_cycle_consistency_loss:
+    #     opts.sample_dir = 'samples_cyclegan_cycle'
 
-    if opts.load:
-        opts.sample_dir = '{}_pretrained'.format(opts.sample_dir)
-        opts.sample_every = 20
+    # if opts.load:
+    #     opts.sample_dir = '{}_pretrained'.format(opts.sample_dir)
+    #     opts.sample_every = 20
 
     print_opts(opts)
     main(opts)
