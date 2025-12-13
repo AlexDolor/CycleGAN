@@ -11,7 +11,7 @@ def to_var(x):
         x = x.cuda()
     elif torch.backends.mps.is_available():
         device = torch.device("mps")
-        x.to(device)
+        x = x.to(device)
     return Variable(x)
 
 
