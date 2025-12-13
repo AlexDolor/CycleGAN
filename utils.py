@@ -9,6 +9,9 @@ def to_var(x):
     """Converts numpy to variable."""
     if torch.cuda.is_available():
         x = x.cuda()
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+        x.to(device)
     return Variable(x)
 
 

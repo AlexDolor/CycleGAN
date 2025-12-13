@@ -88,11 +88,19 @@ def create_model(opts):
 
     print_models(G_XtoY, G_YtoX, D_X, D_Y)
 
-    if torch.cuda.is_available():
-        G_XtoY.cuda()
-        G_YtoX.cuda()
-        D_X.cuda()
-        D_Y.cuda()
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+        G_XtoY.to(device)
+        G_YtoX.to(device)
+        D_X.to(device)
+        D_Y.to(device)
+        print('Models moved to mps.')
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+        G_XtoY.to(device)
+        G_YtoX.to(device)
+        D_X.to(device)
+        D_Y.to(device)
         print('Models moved to GPU.')
 
     return G_XtoY, G_YtoX, D_X, D_Y
@@ -138,11 +146,19 @@ def load_checkpoint(opts):
     D_X.load_state_dict(torch.load(D_X_path, map_location=lambda storage, loc: storage))
     D_Y.load_state_dict(torch.load(D_Y_path, map_location=lambda storage, loc: storage))
 
-    if torch.cuda.is_available():
-        G_XtoY.cuda()
-        G_YtoX.cuda()
-        D_X.cuda()
-        D_Y.cuda()
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+        G_XtoY.to(device)
+        G_YtoX.to(device)
+        D_X.to(device)
+        D_Y.to(device)
+        print('Models moved to mps.')
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+        G_XtoY.to(device)
+        G_YtoX.to(device)
+        D_X.to(device)
+        D_Y.to(device)
         print('Models moved to GPU.')
 
     return G_XtoY, G_YtoX, D_X, D_Y
