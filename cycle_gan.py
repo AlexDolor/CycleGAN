@@ -244,6 +244,10 @@ def training_loop(dataloader_X, dataloader_Y, test_dataloader_X, test_dataloader
     test_iter_X = iter(test_dataloader_X)
     test_iter_Y = iter(test_dataloader_Y)
 
+    #create imagepool
+    X_fake_pool = utils.ImagePool(50)
+    Y_fake_pool = utils.ImagePool(50)
+
     # Get some fixed data from domains X and Y for sampling. These are images that are held
     # constant throughout training, that allow us to inspect the model's performance.
     fixed_X = utils.to_var(next(test_iter_X)[0])
@@ -285,7 +289,7 @@ def training_loop(dataloader_X, dataloader_Y, test_dataloader_X, test_dataloader
         
         with torch.no_grad():
             fake_X = G_YtoX(images_Y)
-        
+        fake_X = X_fake_pool.query(fake_X)
         D_X_fake = D_X(fake_X)
         D_X_loss_fake = calc_discr_loss(mse_criterion, D_X_fake, False)
         
@@ -301,7 +305,7 @@ def training_loop(dataloader_X, dataloader_Y, test_dataloader_X, test_dataloader
 
         with torch.no_grad():
             fake_Y = G_XtoY(images_X)
-
+        fake_Y = Y_fake_pool.query(fake_Y)
         D_Y_fake = D_Y(fake_Y)
         D_Y_loss_fake = calc_discr_loss(mse_criterion, D_Y_fake, False)
 
