@@ -343,10 +343,9 @@ def training_loop(dataloader_X, dataloader_Y, test_dataloader_X, test_dataloader
 
         # Print the log info
         if iteration % opts.log_step == 0:
-            print('Iteration [{:5d}/{:5d}] | d_real_loss: {:6.4f} | d_Y_loss: {:6.4f} | d_X_loss: {:6.4f} | '
-                  'd_fake_loss: {:6.4f} | g_loss: {:6.4f}'.format(
-                    iteration, opts.train_iters, d_X_loss.item(), 'no data',
-                    'no data', d_Y_loss.item(), g_loss.item()))
+            print('Iteration [{:5d}/{:5d}] | d_X_loss: {:6.4f} | '
+                  'd_Y_loss: {:6.4f} | g_loss: {:6.4f}'.format(
+                    iteration, opts.train_iters, d_X_loss.item(), d_Y_loss.item(), g_loss.item()))
 
 
         # Save the generated samples
