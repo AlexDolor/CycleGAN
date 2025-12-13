@@ -17,7 +17,7 @@ def to_var(x):
 
 def to_data(x):
     """Converts variable to numpy."""
-    if torch.cuda.is_available():
+    if torch.cuda.is_available() or torch.backends.mps.is_available():
         x = x.cpu()
     return x.data.numpy()
 
