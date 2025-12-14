@@ -5,18 +5,18 @@ import torch
 from torch.autograd import Variable
 
 
-def to_var(x):
+def to_device(x):
     """Converts numpy to variable."""
     if torch.cuda.is_available():
         x = x.cuda()
     elif torch.backends.mps.is_available():
         device = torch.device("mps")
         x = x.to(device)
-    return Variable(x)
+    return x
 
 
 def to_data(x):
-    """Converts variable to numpy."""
+    """Converts x to numpy."""
     if torch.cuda.is_available() or torch.backends.mps.is_available():
         x = x.cpu()
     return x.data.numpy()
