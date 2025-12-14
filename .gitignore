@@ -1,3 +1,5 @@
+__pycache__/
 .gitignore
 samples_cyclegan/*
 samples_cyclegan_weak/*
+todo.txt

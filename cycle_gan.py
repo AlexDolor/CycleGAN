@@ -423,7 +423,7 @@ def create_parser():
     parser.add_argument('--init_zero_weights', action='store_true', default=False, help='Choose whether to initialize the generator conv weights to 0 (implements the identity function).')
 
     # Training hyper-parameters
-    parser.add_argument('--train_iters', type=int, default=10, help='The number of training iterations to run (you can Ctrl-C out earlier if you want).')
+    parser.add_argument('--train_iters', type=int, default=14000, help='The number of training iterations to run (you can Ctrl-C out earlier if you want).')
     parser.add_argument('--batch_size', type=int, default=16, help='The number of images in a batch.')
     parser.add_argument('--num_workers', type=int, default=0, help='The number of threads to use for the DataLoader.')
     parser.add_argument('--lr', type=float, default=0.0002, help='The learning rate (default 0.0003)')
@@ -439,10 +439,10 @@ def create_parser():
     parser.add_argument('--checkpoint_dir', type=str, default='checkpoints_cyclegan')
     parser.add_argument('--sample_dir', type=str, default='samples_cyclegan')
     parser.add_argument('--load', type=str, default=None)
-    parser.add_argument('--log_step', type=int , default=1)
-    parser.add_argument('--sample_every', type=int , default=5)
-    parser.add_argument('--checkpoint_every', type=int , default=10)
-    parser.add_argument('--secure_checkpoint_every', type=int , default=5000, help='Saves that would not be overwritten')
+    parser.add_argument('--log_step', type=int , default=100)
+    parser.add_argument('--sample_every', type=int , default=500)
+    parser.add_argument('--checkpoint_every', type=int , default=500)
+    parser.add_argument('--secure_checkpoint_every', type=int , default=1000, help='Saves that would not be overwritten')
 
     return parser
 
