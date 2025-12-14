@@ -20,6 +20,7 @@
 import os
 import pdb
 import pickle
+import csv
 # import argparse
 
 import warnings
@@ -257,9 +258,14 @@ def training_loop(dataloader_X, dataloader_Y, test_dataloader_X, test_dataloader
     test_iter_X = iter(test_dataloader_X)
     test_iter_Y = iter(test_dataloader_Y)
 
-    #create imagepool
+    #create imagepool for discriminators
     X_fake_pool = utils.ImagePool(50)
     Y_fake_pool = utils.ImagePool(50)
+
+    # make csv file for metrics
+    metrics_f = open('metrics.csv', 'w', newline='', encoding='utf-8')
+    metrics_writer = csv.writer(metrics_f)
+    metrics_writer.writerow(['epoch', 'iteration', 'g_lr', 'd_lr', 'd_X_loss', 'd_Y_loss', 'g_loss'])
 
     # Get some fixed data from domains X and Y for sampling. These are images that are held
     # constant throughout training, that allow us to inspect the model's performance.
@@ -357,9 +363,21 @@ def training_loop(dataloader_X, dataloader_Y, test_dataloader_X, test_dataloader
 
         # Print the log info
         if iteration % opts.log_step == 0:
-            log = f'Iteration [{iteration:5d}/{opts.train_iters:5d}] | Current epoch [{epoch}]'
-            f'current lr: g_optim_lr: {g_scheduler.get_last_lr():0.5f} d_optim_lr: {d_scheduler.get_last_lr():0.5f}'
-            f'| d_X_loss: {d_X_loss.item():6.4f} | d_Y_loss: {d_Y_loss.item():6.4f} | g_loss: {g_loss.item():6.4f}'
+            g_lr = g_scheduler.get_last_lr()[0]
+            d_lr = d_scheduler.get_last_lr()[0]
+            log = (
+                f'\nIteration [{iteration:5d}/{opts.train_iters:5d}] | Current epoch [{epoch}] '
+                f'current lr: g_optim_lr: {g_lr:0.5f} d_optim_lr: {d_lr:0.5f} '
+                f'| d_X_loss: {d_X_loss.item():6.4f} | d_Y_loss: {d_Y_loss.item():6.4f} | g_loss: {g_loss.item():6.4f}'
+            )
+            print(log)
+
+            metrics_writer.writerow([
+                epoch, iteration,
+                g_lr, d_lr,
+                d_X_loss.item(), d_Y_loss.item(), g_loss.item()
+            ])
+            metrics_f.flush()
             # print('Iteration [{:5d}/{:5d}] | d_X_loss: {:6.4f} | '
             #       'd_Y_loss: {:6.4f} | g_loss: {:6.4f}'.format(
             #         iteration, opts.train_iters, d_X_loss.item(), d_Y_loss.item(), g_loss.item()))
@@ -377,7 +395,8 @@ def training_loop(dataloader_X, dataloader_Y, test_dataloader_X, test_dataloader
         # Secure save the model paremeters
         if iteration % opts.secure_checkpoint_every == 0:
             checkpoint(iteration, G_XtoY, G_YtoX, D_X, D_Y, opts)
-
+    metrics_f.close()
+    
 def main(opts):
     """Loads the data, creates checkpoint and sample directories, and starts the training loop.
     """

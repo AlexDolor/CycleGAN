@@ -26,7 +26,7 @@ def create_parser():
 
     # Training hyper-parameters
     parser.add_argument('--train_iters', type=int, default=14000, help='The number of training iterations to run (you can Ctrl-C out earlier if you want).')
-    parser.add_argument('--train_epochs', type=int, default=None, help='Alternative way of specifing training iters. Epoch size is equal to minimal train set length. Will override --train_iters')
+    parser.add_argument('--train_epochs', type=int, default=None, help='Alternative way of specifying training iters. Epoch size is equal to minimal train set length. Will override --train_iters')
     parser.add_argument('--batch_size', type=int, default=16, help='The number of images in a batch.')
     parser.add_argument('--num_workers', type=int, default=0, help='The number of threads to use for the DataLoader.')
     parser.add_argument('--lr', type=float, default=0.0002, help='The learning rate (default 0.0002)')
