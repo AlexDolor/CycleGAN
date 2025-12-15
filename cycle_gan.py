@@ -274,7 +274,7 @@ def training_loop(dataloader_X, dataloader_Y, test_dataloader_X, test_dataloader
 
     iter_per_epoch = min(len(iter_X), len(iter_Y))
     epoch = 1
-    if opts.train_epochs:
+    if opts.train_epochs > 0:
         opts.train_iters = opts.train_epochs * iter_per_epoch 
 
     for iteration in tqdm(range(1, opts.train_iters+1)):
@@ -293,45 +293,6 @@ def training_loop(dataloader_X, dataloader_Y, test_dataloader_X, test_dataloader
         images_Y, labels_Y = next(iter_Y)
         images_Y, labels_Y = utils.to_device(images_Y), utils.to_device(labels_Y).long().squeeze()
 
-
-        # ============================================
-        #            TRAIN THE DISCRIMINATORS
-        # ============================================
-
-        # UPDATE D_X
-        d_optimizer.zero_grad()
-        
-        D_X_real = D_X(images_X)
-        # print(f'236, {images_X.shape=}, {labels_X.shape=}, {D_X_real.shape=}, {torch.ones_like(labels_X).shape=}')
-        # assert 1==2
-        D_X_loss_real = calc_discr_loss(mse_criterion, D_X_real, True)
-        
-        with torch.no_grad():
-            fake_X = G_YtoX(images_Y)
-        fake_X = X_fake_pool.query(fake_X)
-        D_X_fake = D_X(fake_X)
-        D_X_loss_fake = calc_discr_loss(mse_criterion, D_X_fake, False)
-        
-        d_X_loss = (D_X_loss_real + D_X_loss_fake) * 0.5
-        d_X_loss.backward()
-        d_optimizer.step()
-
-        # UPDATE D_Y
-        d_optimizer.zero_grad()
-
-        D_Y_real = D_Y(images_Y)
-        D_Y_loss_real = calc_discr_loss(mse_criterion, D_Y_real, True)
-
-        with torch.no_grad():
-            fake_Y = G_XtoY(images_X)
-        fake_Y = Y_fake_pool.query(fake_Y)
-        D_Y_fake = D_Y(fake_Y)
-        D_Y_loss_fake = calc_discr_loss(mse_criterion, D_Y_fake, False)
-
-        d_Y_loss = (D_Y_loss_real + D_Y_loss_fake) * 0.5
-        d_Y_loss.backward()
-        d_optimizer.step()
-
         # =========================================
         #            TRAIN THE GENERATORS
         # =========================================
@@ -343,9 +304,14 @@ def training_loop(dataloader_X, dataloader_Y, test_dataloader_X, test_dataloader
         # assert 1 == 2
         fake_Y = G_XtoY(images_X)
 
-        with torch.no_grad():
-            D_X_fake = D_X(fake_X)
-            D_Y_fake = D_Y(fake_Y)
+        for p in D_X.parameters():
+            p.requires_grad_(False)
+        for p in D_Y.parameters():
+            p.requires_grad_(False)
+
+        
+        D_X_fake = D_X(fake_X)
+        D_Y_fake = D_Y(fake_Y)
         g_loss = calc_discr_loss(mse_criterion, D_X_fake, True)
         g_loss += calc_discr_loss(mse_criterion, D_Y_fake, True)
 
@@ -360,6 +326,49 @@ def training_loop(dataloader_X, dataloader_Y, test_dataloader_X, test_dataloader
 
         g_loss.backward()
         g_optimizer.step()
+
+        for p in D_X.parameters():
+            p.requires_grad_(True)
+        for p in D_Y.parameters():
+            p.requires_grad_(True)
+
+        # ============================================
+        #            TRAIN THE DISCRIMINATORS
+        # ============================================
+
+        # UPDATE D_X
+        d_optimizer.zero_grad()
+        
+        D_X_real = D_X(images_X)
+        # print(f'236, {images_X.shape=}, {labels_X.shape=}, {D_X_real.shape=}, {torch.ones_like(labels_X).shape=}')
+        # assert 1==2
+        D_X_loss_real = calc_discr_loss(mse_criterion, D_X_real, True)
+        
+        # with torch.no_grad():
+        #     fake_X = G_YtoX(images_Y)
+        fake_X = X_fake_pool.query(fake_X.detach())
+        D_X_fake = D_X(fake_X)
+        D_X_loss_fake = calc_discr_loss(mse_criterion, D_X_fake, False)
+        
+        d_X_loss = (D_X_loss_real + D_X_loss_fake) * 0.5
+        d_X_loss.backward()
+        d_optimizer.step()
+
+        # UPDATE D_Y
+        d_optimizer.zero_grad()
+
+        D_Y_real = D_Y(images_Y)
+        D_Y_loss_real = calc_discr_loss(mse_criterion, D_Y_real, True)
+
+        # with torch.no_grad():
+        #     fake_Y = G_XtoY(images_X)
+        fake_Y = Y_fake_pool.query(fake_Y.detach())
+        D_Y_fake = D_Y(fake_Y)
+        D_Y_loss_fake = calc_discr_loss(mse_criterion, D_Y_fake, False)
+
+        d_Y_loss = (D_Y_loss_real + D_Y_loss_fake) * 0.5
+        d_Y_loss.backward()
+        d_optimizer.step()
 
         # Print the log info
         if iteration % opts.log_step == 0:
@@ -378,10 +387,6 @@ def training_loop(dataloader_X, dataloader_Y, test_dataloader_X, test_dataloader
                 d_X_loss.item(), d_Y_loss.item(), g_loss.item()
             ])
             metrics_f.flush()
-            # print('Iteration [{:5d}/{:5d}] | d_X_loss: {:6.4f} | '
-            #       'd_Y_loss: {:6.4f} | g_loss: {:6.4f}'.format(
-            #         iteration, opts.train_iters, d_X_loss.item(), d_Y_loss.item(), g_loss.item()))
-
 
         # Save the generated samples
         if iteration % opts.sample_every == 0:
